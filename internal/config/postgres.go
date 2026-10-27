@@ -19,7 +19,7 @@ type Env struct {
 	Password string
 }
 
-func Load() {
+func Load() *pgxpool.Pool {
 	enverr := godotenv.Load(".env")
 
 	if enverr != nil {
@@ -44,9 +44,6 @@ func Load() {
 		os.Exit(1)
 	}
 
-	defer pool.Close()
-	defer fmt.Println("END")
-
 	pingerr := pool.Ping(context.Background())
 
 	if pingerr != nil {
@@ -54,5 +51,5 @@ func Load() {
 		os.Exit(1)
 	}
 
-	fmt.Println("Connection database succeed!")
+	return pool
 }

@@ -1,9 +1,15 @@
 package main
 
 import (
-	"github.com/RevanAdr/go-restful-api/internal/config"
+	"log"
+	"net/http"
+
+	"github.com/RevanAdr/go-restful-api/internal/handler"
 )
 
 func main() {
-	config.Load()
+	router := handler.NewRouter()
+
+	log.Println("Server listening on :8000")
+	log.Fatal(http.ListenAndServe(":8000", router))
 }

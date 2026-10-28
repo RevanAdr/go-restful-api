@@ -11,6 +11,10 @@ import (
 	"github.com/joho/godotenv"
 )
 
+type Config interface {
+	Load() *pgxpool.Pool
+}
+
 type Env struct {
 	Host     string
 	Port     int

@@ -6,25 +6,32 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/RevanAdr/go-restful-api/internal/repository"
+	"github.com/RevanAdr/go-restful-api/internal/service"
 )
 
-type Handler struct {
-	// soon will be middleware here
+type Handler interface {
+	ViewId(w http.ResponseWriter, r *http.Request)
+	ViewAll(w http.ResponseWriter, r *http.Request)
 }
 
-func NewHandler() *Handler {
-	return &Handler{}
+type HandlerImpl struct {
+	service service.CategoryService
 }
 
-func (h *Handler) ViewId(w http.ResponseWriter, r *http.Request) {
+func NewHandler(service service.CategoryService) Handler {
+	return &HandlerImpl{
+		service: service,
+	}
+}
+
+func (h *HandlerImpl) ViewId(w http.ResponseWriter, r *http.Request) {
 	idstring := r.PathValue("id")
 
 	id, _ := strconv.Atoi(idstring)
 
 	w.Header().Set("Content-Type", "application/json")
 
-	response := repository.GetById(id)
+	response := h.service.GetByIdService(id)
 
 	err := json.NewEncoder(w).Encode(response)
 
@@ -36,10 +43,10 @@ func (h *Handler) ViewId(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *Handler) ViewAll(w http.ResponseWriter, r *http.Request) {
+func (h *HandlerImpl) ViewAll(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	responses := repository.GetAll()
+	responses := h.service.GetAllService()
 
 	err := json.NewEncoder(w).Encode(responses)
 

@@ -9,7 +9,19 @@ import (
 	"github.com/RevanAdr/go-restful-api/internal/helper"
 )
 
-func GetById(id int) *helper.CategoryResponse {
+type CategoryRepository interface {
+	GetById(id int) *helper.CategoryResponse
+	GetAll() *[]helper.CategoryResponse
+}
+
+type CategoryRepositoryImpl struct {
+}
+
+func NewCategoryRepository() CategoryRepository {
+	return &CategoryRepositoryImpl{}
+}
+
+func (c *CategoryRepositoryImpl) GetById(id int) *helper.CategoryResponse {
 	conn := config.Load()
 	defer conn.Close()
 
@@ -30,7 +42,7 @@ func GetById(id int) *helper.CategoryResponse {
 	return &response
 }
 
-func GetAll() *[]helper.CategoryResponse {
+func (c *CategoryRepositoryImpl) GetAll() *[]helper.CategoryResponse {
 	conn := config.Load()
 	defer conn.Close()
 

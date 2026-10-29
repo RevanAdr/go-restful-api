@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/RevanAdr/go-restful-api/internal/catalog"
 	"github.com/RevanAdr/go-restful-api/internal/platform/config"
@@ -11,7 +12,9 @@ import (
 
 func main() {
 	config := config.NewConfig()
-	db := config.Load()
+	db, port := config.Load()
+
+	formattedPort := fmt.Sprintf(":%s", port)
 
 	defer db.Close()
 
@@ -20,6 +23,15 @@ func main() {
 	handler := catalog.NewCatalogHandler(service)
 	router := catalog.NewCatalogRouter(handler)
 
-	fmt.Println("Server listening on :8000")
-	log.Fatal(http.ListenAndServe(":8000", router.Route()))
+	server := &http.Server{
+		Addr:              formattedPort,
+		Handler:           router.Route(),
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
+
+	fmt.Printf("Server listening on %s", formattedPort)
+	log.Fatal(server.ListenAndServe())
 }

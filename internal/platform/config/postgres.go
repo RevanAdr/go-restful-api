@@ -11,7 +11,7 @@ import (
 )
 
 type Config interface {
-	Load() *pgxpool.Pool
+	Load() (*pgxpool.Pool, string)
 }
 
 type ConfigImpl struct {
@@ -21,10 +21,13 @@ func NewConfig() Config {
 	return &ConfigImpl{}
 }
 
-func (c *ConfigImpl) Load() *pgxpool.Pool {
+func (c *ConfigImpl) Load() (*pgxpool.Pool, string) {
 	loadErr := godotenv.Load(".env")
+
+	appPort := os.Getenv("APP_PORT")
+
 	if loadErr != nil {
-		return &pgxpool.Pool{}
+		return &pgxpool.Pool{}, appPort
 	}
 
 	port := ConvertPort(os.Getenv("POSTGRES_PORT"))
@@ -45,5 +48,5 @@ func (c *ConfigImpl) Load() *pgxpool.Pool {
 		log.Fatal("Could not make database connection!")
 	}
 
-	return pool
+	return pool, appPort
 }

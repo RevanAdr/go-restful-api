@@ -2,13 +2,16 @@ package catalog
 
 import (
 	"context"
-	"log"
+	"errors"
+	"fmt"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type CatalogRepository interface {
 	List(ctx context.Context) ([]CatalogResponse, error)
+	Get(ctx context.Context, id int) (CatalogResponse, error)
 }
 
 type CatalogRepositoryImpl struct {
@@ -19,12 +22,13 @@ func NewCatalogRepository(db *pgxpool.Pool) CatalogRepository {
 	return &CatalogRepositoryImpl{Db: db}
 }
 
+var ErrNotFound error = errors.New("categories with that id not found")
+
 func (r *CatalogRepositoryImpl) List(ctx context.Context) ([]CatalogResponse, error) {
 	rows, err := r.Db.Query(ctx, "SELECT * FROM categories")
 
 	if err != nil {
-		// return []CatalogResponse{}, err
-		log.Fatalf("error on : %v", err)
+		return []CatalogResponse{}, fmt.Errorf("could not list : %w", err)
 	}
 
 	defer rows.Close()
@@ -34,13 +38,24 @@ func (r *CatalogRepositoryImpl) List(ctx context.Context) ([]CatalogResponse, er
 	for rows.Next() {
 		response := CatalogResponse{}
 
-		rErr := rows.Scan(&response.Id, &response.Name)
-		if rErr != nil {
-			return responses, rErr
+		err := rows.Scan(&response.Id, &response.Name)
+		if err != nil {
+			return responses, fmt.Errorf("scan failed : %w", err)
 		}
 
 		responses = append(responses, response)
 	}
 
 	return responses, nil
+}
+
+func (r *CatalogRepositoryImpl) Get(ctx context.Context, id int) (CatalogResponse, error) {
+	response := CatalogResponse{}
+	rows := r.Db.QueryRow(ctx, "SELECT * FROM categories WHERE categoryId = $1", id).Scan(&response.Id, &response.Name)
+
+	if errors.Is(rows, pgx.ErrNoRows) {
+		return response, ErrNotFound
+	}
+
+	return response, nil
 }

@@ -18,3 +18,10 @@ func ToWebResponses(raw []CatalogResponse) []CatalogWebResponse {
 	}
 	return results
 }
+
+func ToWebResponse(raw CatalogResponse) CatalogWebResponse {
+	return CatalogWebResponse{
+		Id:   raw.Id,
+		Name: raw.Name,
+	}
+}

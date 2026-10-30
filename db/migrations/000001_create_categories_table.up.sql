@@ -1,4 +1,4 @@
 CREATE TABLE IF NOT EXISTS categories (
-    categoryId serial PRIMARY KEY,
-    name VARCHAR(50)
+    categoryId INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(50) NOT NULL
 )

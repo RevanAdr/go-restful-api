@@ -11,6 +11,7 @@ import (
 type CatalogHandler interface {
 	List(w http.ResponseWriter, r *http.Request)
 	Get(w http.ResponseWriter, r *http.Request)
+	Create(w http.ResponseWriter, r *http.Request)
 }
 
 type CatalogHandlerImpl struct {
@@ -21,11 +22,11 @@ func NewCatalogHandler(service CatalogService) CatalogHandler {
 	return &CatalogHandlerImpl{Service: service}
 }
 
-func (s *CatalogHandlerImpl) List(w http.ResponseWriter, r *http.Request) {
+func (h *CatalogHandlerImpl) List(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 	defer cancel()
 
-	responses, err := s.Service.List(ctx)
+	responses, err := h.Service.List(ctx)
 
 	if err != nil {
 		WriteJson(w, http.StatusInternalServerError, map[string]string{"error": "could not list categories"})
@@ -35,7 +36,7 @@ func (s *CatalogHandlerImpl) List(w http.ResponseWriter, r *http.Request) {
 	WriteJson(w, http.StatusOK, responses)
 }
 
-func (s *CatalogHandlerImpl) Get(w http.ResponseWriter, r *http.Request) {
+func (h *CatalogHandlerImpl) Get(w http.ResponseWriter, r *http.Request) {
 	strId := r.PathValue("id")
 
 	id, err := strconv.Atoi(strId)
@@ -48,7 +49,7 @@ func (s *CatalogHandlerImpl) Get(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 	defer cancel()
 
-	result, err := s.Service.Get(ctx, id)
+	result, err := h.Service.Get(ctx, id)
 
 	switch {
 	case errors.Is(err, ErrNotFound):
@@ -58,4 +59,22 @@ func (s *CatalogHandlerImpl) Get(w http.ResponseWriter, r *http.Request) {
 	default:
 		WriteJson(w, http.StatusOK, result)
 	}
+}
+
+func (h *CatalogHandlerImpl) Create(w http.ResponseWriter, r *http.Request) {
+	request := CatalogCreateRequest{}
+	ReadBody(r, &request)
+	catalog := CatalogResponse{
+
+		Name: request.Name,
+	}
+
+	response, err := h.Service.Create(r.Context(), catalog)
+
+	if err != nil {
+		WriteJson(w, http.StatusInternalServerError, map[string]string{"error": "could not create data"})
+		return
+	}
+
+	WriteJson(w, http.StatusCreated, response)
 }

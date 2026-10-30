@@ -19,6 +19,7 @@ func (r *CatalogRouterImpl) Route() *http.ServeMux {
 
 	mux.HandleFunc("GET /api/v1/categories", r.Handler.List)
 	mux.HandleFunc("GET /api/v1/categories/{id}", r.Handler.Get)
+	mux.HandleFunc("POST /api/v1/categories", r.Handler.Create)
 
 	return mux
 }

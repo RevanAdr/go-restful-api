@@ -5,6 +5,7 @@ import "context"
 type CatalogService interface {
 	List(ctx context.Context) ([]CatalogWebResponse, error)
 	Get(ctx context.Context, id int) (CatalogWebResponse, error)
+	Create(ctx context.Context, catalog CatalogResponse) (CatalogWebResponse, error)
 }
 
 type CatalogServiceImpl struct {
@@ -27,6 +28,16 @@ func (s *CatalogServiceImpl) List(ctx context.Context) ([]CatalogWebResponse, er
 
 func (s *CatalogServiceImpl) Get(ctx context.Context, id int) (CatalogWebResponse, error) {
 	rawResponse, err := s.Repository.Get(ctx, id)
+
+	if err != nil {
+		return CatalogWebResponse{}, err
+	}
+
+	return ToWebResponse(rawResponse), nil
+}
+
+func (s *CatalogServiceImpl) Create(ctx context.Context, catalog CatalogResponse) (CatalogWebResponse, error) {
+	rawResponse, err := s.Repository.Create(ctx, catalog)
 
 	if err != nil {
 		return CatalogWebResponse{}, err

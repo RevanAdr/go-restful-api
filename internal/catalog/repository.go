@@ -13,6 +13,7 @@ type CatalogRepository interface {
 	List(ctx context.Context) ([]CatalogResponse, error)
 	Get(ctx context.Context, id int) (CatalogResponse, error)
 	Create(ctx context.Context, catalog CatalogResponse) (CatalogResponse, error)
+	Delete(ctx context.Context, catalog CatalogResponse)
 }
 
 type CatalogRepositoryImpl struct {
@@ -86,4 +87,22 @@ func (r *CatalogRepositoryImpl) Create(ctx context.Context, catalog CatalogRespo
 	}
 
 	return response, nil
+}
+
+func (r *CatalogRepositoryImpl) Delete(ctx context.Context, catalog CatalogResponse) {
+	tx, err := r.Db.Begin(ctx)
+
+	if err != nil {
+		return
+	}
+
+	_, dErr := tx.Exec(ctx, "DELETE FROM categories WHERE categoryId = $1", catalog.Id)
+
+	if dErr != nil {
+		return
+	}
+
+	if cErr := tx.Commit(ctx); cErr != nil {
+		tx.Rollback(ctx)
+	}
 }

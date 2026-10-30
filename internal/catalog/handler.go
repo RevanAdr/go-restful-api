@@ -12,6 +12,7 @@ type CatalogHandler interface {
 	List(w http.ResponseWriter, r *http.Request)
 	Get(w http.ResponseWriter, r *http.Request)
 	Create(w http.ResponseWriter, r *http.Request)
+	Delete(w http.ResponseWriter, r *http.Request)
 }
 
 type CatalogHandlerImpl struct {
@@ -77,4 +78,27 @@ func (h *CatalogHandlerImpl) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	WriteJson(w, http.StatusCreated, response)
+}
+
+func (h *CatalogHandlerImpl) Delete(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	id, err := strconv.Atoi(idStr)
+
+	if err != nil {
+		WriteJson(w, http.StatusBadRequest, map[string]string{"error": "invalid id"})
+		return
+	}
+
+	rErr := h.Service.Delete(r.Context(), id)
+
+	switch {
+	case errors.Is(rErr, ErrNotFound):
+		WriteJson(w, http.StatusNotFound, map[string]string{"error": "product not found"})
+		return
+	case rErr != nil:
+		WriteJson(w, http.StatusInternalServerError, map[string]string{"error": "could not delete product"})
+		return
+	default:
+		WriteJson(w, http.StatusNoContent, map[string]string{})
+	}
 }

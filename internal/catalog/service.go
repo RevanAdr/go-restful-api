@@ -6,6 +6,7 @@ type CatalogService interface {
 	List(ctx context.Context) ([]CatalogWebResponse, error)
 	Get(ctx context.Context, id int) (CatalogWebResponse, error)
 	Create(ctx context.Context, catalog CatalogResponse) (CatalogWebResponse, error)
+	Delete(ctx context.Context, categoryId int) error
 }
 
 type CatalogServiceImpl struct {
@@ -44,4 +45,14 @@ func (s *CatalogServiceImpl) Create(ctx context.Context, catalog CatalogResponse
 	}
 
 	return ToWebResponse(rawResponse), nil
+}
+
+func (s *CatalogServiceImpl) Delete(ctx context.Context, categoryId int) error {
+	category, err := s.Repository.Get(ctx, categoryId)
+
+	if err != nil {
+		return err
+	}
+	s.Repository.Delete(ctx, category)
+	return nil
 }
